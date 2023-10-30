@@ -44,7 +44,7 @@ jobs:
                 "description": "[**%s**](https://github.com/%s/commit/%s) %s",
                 "color": null,
                 "author": {
-                  "name": "New Commit to KonmaiLoader!"
+                  "name": "New Commit to reMonkey!"
                 }
               }
             ],
