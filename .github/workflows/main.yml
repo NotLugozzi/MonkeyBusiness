@@ -1,0 +1,54 @@
+name: Send Discord Webhook on Commit
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  send-webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Get commit information
+        id: commit
+        run: |
+          COMMIT_ID=$(git rev-parse --short ${{ github.sha }})
+          COMMIT_TEXT=$(git log --format=%B -n 1 ${{ github.sha }})
+
+          echo "::set-output name=commit_id::$COMMIT_ID"
+          echo "::set-output name=commit_text::$COMMIT_TEXT"
+
+      - name: Send Discord Webhook
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          COMMIT_ID="${{ steps.commit.outputs.commit_id }}"
+          COMMIT_TEXT="${{ steps.commit.outputs.commit_text }}"
+          
+          JSON_PAYLOAD=$(printf '{
+            "content": null,
+            "embeds": [
+              {
+                "description": "[**%s**](https://github.com/%s/commit/%s) %s",
+                "color": null,
+                "author": {
+                  "name": "New Commit to KonmaiLoader!"
+                }
+              }
+            ],
+            "attachments": []
+          }' "$COMMIT_ID" "${{ github.repository }}" "$COMMIT_ID" "$COMMIT_TEXT")
+          
+          echo "$JSON_PAYLOAD" | curl -X POST -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK_URL"
