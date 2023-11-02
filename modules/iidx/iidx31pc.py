@@ -61,7 +61,7 @@ def calculate_folder_mask(profile):
 
 
 @router.post("/{gameinfo}/IIDX31pc/get")
-async def IIDX31pc_get(request: Request):
+async def iidx31pc_get(request: Request):
     request_info = await core_process_request(request)
     game_version = request_info["game_version"]
 
@@ -534,7 +534,7 @@ async def IIDX31pc_get(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/common")
-async def IIDX31pc_common(request: Request):
+async def iidx31pc_common(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
@@ -596,7 +596,7 @@ async def IIDX31pc_common(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/save")
-async def IIDX31pc_save(request: Request):
+async def iidx31pc_save(request: Request):
     request_info = await core_process_request(request)
     game_version = request_info["game_version"]
 
@@ -835,7 +835,7 @@ async def IIDX31pc_save(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/visit")
-async def IIDX31pc_visit(request: Request):
+async def iidx31pc_visit(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
@@ -854,7 +854,7 @@ async def IIDX31pc_visit(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/reg")
-async def IIDX31pc_reg(request: Request):
+async def iidx31pc_reg(request: Request):
     request_info = await core_process_request(request)
     game_version = request_info["game_version"]
 
@@ -1062,7 +1062,7 @@ async def IIDX31pc_reg(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/getLaneGachaTicket")
-async def IIDX31pc_getlanegachaticket(request: Request):
+async def iidx31pc_getlanegachaticket(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
@@ -1097,7 +1097,7 @@ async def IIDX31pc_getlanegachaticket(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/consumeLaneGachaTicket")
-async def IIDX31pc_consumelanegachaticket(request: Request):
+async def iidx31pc_consumelanegachaticket(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(E.IIDX31pc())
@@ -1107,17 +1107,17 @@ async def IIDX31pc_consumelanegachaticket(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/drawLaneGacha")
-async def IIDX31pc_drawlanegacha(request: Request):
+async def iidx31pc_drawlanegacha(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
         E.IIDX31pc(
             E.ticket(
                 ticket_id=1,
-                arrange_id=1,
-                expire_date=0,
+                arrange_ide=0,
             ),
-            E.session(session_id=1),
+            E.session(sess=1,
+                expire_dation_id=1),
             status=0,
         )
     )
@@ -1127,7 +1127,7 @@ async def IIDX31pc_drawlanegacha(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/eaappliresult")
-async def IIDX31pc_eaappliresult(request: Request):
+async def iidx31pc_eaappliresult(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(E.IIDX31pc())
@@ -1137,22 +1137,16 @@ async def IIDX31pc_eaappliresult(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/getCompeInfo")
-async def IIDX31pc_getCompeInfo(request: Request):
-    # Create the desired response XML
-    response_content = """
-    <response>
-        <IIDX31pc status="0" />
-    </response>
-    """
+async def iidx31pc_getcompeinfo(request: Request):
+    request_info = await core_process_request(request)
 
-    # Set the content type to XML and encoding to UTF-8
-    response = Response(content=response_content, media_type="application/xml; charset=UTF-8")
+    response = E.response(E.IIDX31pc())
 
-    return response
-
+    response_body, response_headers = await core_prepare_response(request, response)
+    return Response(content=response_body, headers=response_headers)
 
 @router.post("/{gameinfo}/IIDX31pc/playstart")
-async def IIDX31pc_playstart(request: Request):
+async def iidx31pc_playstart(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(E.IIDX31pc())
@@ -1162,7 +1156,7 @@ async def IIDX31pc_playstart(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31pc/logout")
-async def IIDX31pc_logout(request: Request):
+async def iidx31pc_logout(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(E.IIDX31pc())
