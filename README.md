@@ -1,4 +1,7 @@
-# Changes made in this fork
+# Changes made in this fork:
+## IIDX 31 Support!
+IIDX 31 now loads and allows carding in, working on unlocks and proper score saving support since konami did the funny on this release
+
 ## Added BPL Team Banner Customisation in Database 
 **Team IDs:**
 
