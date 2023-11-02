@@ -51,7 +51,9 @@ async def core_get_game_version_from_software_version(software_version):
     ext = int(ext)
 
     if model == "LDJ":
-        if ext >= 2022101700:
+        if ext >= 2023101800:
+            return 31
+        elif ext in range(2022101700, 2023090500):
             return 30
         elif ext in range(2021101300, 2022101500):
             return 29
@@ -137,7 +139,7 @@ async def core_process_request(request):
     if request.compress == "lz77":
         xml_dec = EamuseLZ77.decode(xml_dec)
 
-    xml = KBinXML(xml_dec)
+    xml = KBinXML(xml_dec, convert_illegal_things=True)
     root = xml.xml_doc
     xml_text = xml.to_text()
     request.is_binxml = KBinXML.is_binary_xml(xml_dec)
@@ -174,7 +176,7 @@ async def core_prepare_response(request, xml):
     if request.is_binxml:
         xml_binary = binxml.to_binary()
     else:
-        xml_binary = binxml.to_text().encode("utf-8")  # TODO: Proper encoding
+        xml_binary = binxml.to_text().encode("shift-jis")  # TODO: Proper encoding
 
     if config.verbose_log:
         print("\033[91mRESPONSE\033[0m:")
