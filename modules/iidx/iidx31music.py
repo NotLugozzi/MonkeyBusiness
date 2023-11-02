@@ -4,7 +4,6 @@ from enum import IntEnum
 
 from fastapi import APIRouter, Request, Response
 from tinydb import where
-import xml.etree.ElementTree as ET
 
 from core_common import core_process_request, core_prepare_response, E
 from core_database import get_db
@@ -114,7 +113,7 @@ async def iidx31music_getrank(request: Request):
             top_scores[music_id][chart_id]["ex_score"] = ex_score
 
     response = E.response(
-        E.iidx31music(
+        E.IIDX31music(
             E.style(type=play_style),
             *[
                 E.m(
@@ -166,40 +165,28 @@ async def iidx31music_crate(request: Request):
         (where("music_id") < (game_version + 1) * 1000)
     )
 
-    root = ET.Element("response")
-    iidx31music = ET.SubElement(root, "IIDX31music", status="0")
+    crate = {}
+    fcrate = {}
+    for stat in all_score_stats:
+        if stat["music_id"] not in crate:
+            crate[stat["music_id"]] = [1001] * 10
+        if stat["music_id"] not in fcrate:
+            fcrate[stat["music_id"]] = [1001] * 10
 
-    if not all_score_stats:
-        pass  # No data, no need to add anything
-    else:
-        crate = {}
-        fcrate = {}
-        for stat in all_score_stats:
-            if stat["music_id"] not in crate:
-                crate[stat["music_id"]] = [1001] * 10
-            if stat["music_id"] not in fcrate:
-                fcrate[stat["music_id"]] = [1001] * 10
+        if stat["play_style"] == 1:
+            dp_idx = 5
+        else:
+            dp_idx = 0
 
-            if stat["play_style"] == 1:
-                dp_idx = 5
-            else:
-                dp_idx = 0
+        crate[stat["music_id"]][stat["chart_id"] + dp_idx] = int(stat["clear_rate"])
+        fcrate[stat["music_id"]][stat["chart_id"] + dp_idx] = int(stat["fc_rate"])
 
-            crate[stat["music_id"]][stat["chart_id"] + dp_idx] = int(stat["clear_rate"])
-            fcrate[stat["music_id"]][stat["chart_id"] + dp_idx] = int(stat["fc_rate"])
-
-        for k in crate:
-            c = ET.SubElement(iidx31music, "c", mid=str(k), __type="s32")
-            c.text = ",".join(map(str, crate[k] + fcrate[k]))
-
-    response = ET.tostring(root, encoding="utf-8")
+    response = E.response(
+        E.IIDX31music(*[E.c(crate[k] + fcrate[k], mid=k, __type="s32") for k in crate])
+    )
 
     response_body, response_headers = await core_prepare_response(request, response)
     return Response(content=response_body, headers=response_headers)
-
-    response_body, response_headers = await core_prepare_response(request, response)
-    return Response(content=response_body, headers=response_headers)
-
 
 
 @router.post("/{gameinfo}/IIDX31music/reg")
@@ -405,7 +392,7 @@ async def iidx31music_reg(request: Request):
             myRank = rnum + 1
 
     response = E.response(
-        E.iidx31music(
+        E.IIDX31music(
             E.ranklist(*ranklist_data, total_user_num=len(ranklist_data)),
             E.shopdata(rank=myRank),
             clid=clid,
@@ -531,7 +518,7 @@ async def iidx31music_arenaCPU(request: Request):
             cpu_ghosts[i][j]["ghost_data"] = ghost_data
 
     response = E.response(
-        E.iidx31music(
+        E.IIDX31music(
             *[
                 E.cpu_score_list(
                     E.index(i, __type="s32"),
@@ -549,6 +536,21 @@ async def iidx31music_arenaCPU(request: Request):
                 )
                 for i in range(music_count)
             ],
+        )
+    )
+
+    response_body, response_headers = await core_prepare_response(request, response)
+    return Response(content=response_body, headers=response_headers)
+
+
+@router.post("/{gameinfo}/IIDX31music/retry")
+async def iidx31music_retry(request: Request):
+    request_info = await core_process_request(request)
+
+    response = E.response(
+        E.IIDX31music(
+            E.session(session_id=1),
+            status=0,
         )
     )
 

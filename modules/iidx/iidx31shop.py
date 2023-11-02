@@ -13,7 +13,7 @@ async def iidx31shop_getname(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
-        E.iidx31shop(
+        E.IIDX31shop(
             cls_opt=0,
             opname=config.arcade,
             pid=13,
@@ -23,27 +23,13 @@ async def iidx31shop_getname(request: Request):
     response_body, response_headers = await core_prepare_response(request, response)
     return Response(content=response_body, headers=response_headers)
 
-@router.post("/{gameinfo}/IIDX31shop/savename")
-async def iidx31shop_savename(request: Request):
-    request_info = await core_process_request(request)
-
-    response = E.response(
-        E.iidx31shop(
-            cls_opt=0,
-            opname=config.arcade,
-            pid=13,
-        )
-    )
-
-    response_body, response_headers = await core_prepare_response(request, response)
-    return Response(content=response_body, headers=response_headers)
 
 @router.post("/{gameinfo}/IIDX31shop/getconvention")
-async def IIDX31shop_getconvention(request: Request):
+async def iidx31shop_getconvention(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(
-        E.iidx31shop(
+        E.IIDX31shop(
             E.valid(1, __type="bool"),
             music_0=-1,
             music_1=-1,
@@ -59,20 +45,20 @@ async def IIDX31shop_getconvention(request: Request):
 
 
 @router.post("/{gameinfo}/IIDX31shop/sentinfo")
-async def IIDX31shop_sentinfo(request: Request):
+async def iidx31shop_sentinfo(request: Request):
     request_info = await core_process_request(request)
 
-    response = E.response(E.iidx31shop())
+    response = E.response(E.IIDX31shop())
 
     response_body, response_headers = await core_prepare_response(request, response)
     return Response(content=response_body, headers=response_headers)
 
 
 @router.post("/{gameinfo}/IIDX31shop/sendescapepackageinfo")
-async def IIDX31shop_sendescapepackageinfo(request: Request):
+async def iidx31shop_sendescapepackageinfo(request: Request):
     request_info = await core_process_request(request)
 
-    response = E.response(E.iidx31shop(expire=1200))
+    response = E.response(E.IIDX31shop(expire=1200))
 
     response_body, response_headers = await core_prepare_response(request, response)
     return Response(content=response_body, headers=response_headers)

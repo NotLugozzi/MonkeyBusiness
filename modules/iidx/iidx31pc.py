@@ -3,17 +3,15 @@ from tinydb import Query, where
 from time import time
 import config
 import random
-from kbinxml import KBinXML 
 
 from fastapi import APIRouter, Request, Response
-
 
 from core_common import core_process_request, core_prepare_response, E
 from core_database import get_db
 
-
 router = APIRouter(prefix="/local2", tags=["local2"])
 router.model_whitelist = ["LDJ"]
+
 
 def get_profile(cid):
     return get_db().table("iidx_profile").get(where("card") == cid)
@@ -108,7 +106,7 @@ async def iidx31pc_get(request: Request):
         rivals[idx]["hand"] = rival_profile["hand"]
         rivals[idx]["head"] = rival_profile["head"]
 
-    current_time = round(time())
+    # current_time = round(time())
 
     response = E.response(
         E.IIDX31pc(
@@ -116,6 +114,7 @@ async def iidx31pc_get(request: Request):
                 d_auto_adjust=profile["d_auto_adjust"],
                 d_auto_scrach=profile["d_auto_scrach"],
                 d_camera_layout=profile["d_camera_layout"],
+                d_classic_hispeed=profile["d_classic_hispeed"],
                 d_disp_judge=profile["d_disp_judge"],
                 d_exscore=profile["d_exscore"],
                 d_gauge_disp=profile["d_gauge_disp"],
@@ -151,11 +150,13 @@ async def iidx31pc_get(request: Request):
                 name=profile["djname"],
                 ngrade=profile["ngrade"],
                 pid=profile["region"],
+                player_kind=-1,
                 pmode=profile["pmode"],
                 rtype=profile["rtype"],
                 s_auto_adjust=profile["s_auto_adjust"],
                 s_auto_scrach=profile["s_auto_scrach"],
                 s_camera_layout=profile["s_camera_layout"],
+                s_classic_hispeed=profile["s_classic_hispeed"],
                 s_disp_judge=profile["s_disp_judge"],
                 s_exscore=profile["s_exscore"],
                 s_gauge_disp=profile["s_gauge_disp"],
@@ -197,28 +198,58 @@ async def iidx31pc_get(request: Request):
             ),
             E.skin(
                 [
-                    profile["frame"],
-                    profile["turntable"],
-                    profile["explosion"],
-                    profile["bgm"],
                     calculate_folder_mask(profile),
-                    profile["sudden"],
-                    profile["judge_pos"],
-                    profile["categoryvoice"],
-                    profile["note"],
-                    profile["fullcombo"],
-                    profile["keybeam"],
+                    profile["explosion"],
+                    profile["explosion_size"],
+                    profile["turntable"],
                     profile["judgestring"],
-                    -1,
+                    profile["note"],
+                    profile.get("note_size", 0),
                     profile["soundpreview"],
-                    profile["grapharea"],
                     profile["effector_lock"],
                     profile["effector_type"],
-                    profile["explosion_size"],
+                    profile["bgm"],
                     profile["alternate_hcn"],
                     profile["kokokara_start"],
+                    profile["sudden"],
+                    profile["grapharea"],
+                    profile.get("lift", 0),
+                    profile["keybeam"],
+                    profile.get("keybeam_size", 1),
+                    profile["fullcombo"],
+                    0,
                 ],
                 __type="s16",
+            ),
+            E.tdjskin(
+                [
+                    profile.get("submonitor", 0),
+                    0,
+                    0,
+                    0,
+                ],
+                __type="s16",
+            ),
+            E.skin_customize_flg(
+                skin_frame_flg=-1,
+                skin_turntable_flg=-1,
+                skin_bomb_flg=-1,
+                skin_bgm_flg=-1,
+                skin_lane_flg0=-1,
+                skin_lane_flg1=-1,
+                skin_lane_flg2=-1,
+                skin_lane_flg3=-1,
+                skin_lane_flg4=-1,
+                skin_lane_flg5=-1,
+                skin_notes_flg=-1,
+                skin_fullcombo_flg=-1,
+                skin_keybeam_flg=-1,
+                skin_judgestring_flg=-1,
+                # skin_bgm_flg=profile["skin_customize_flag_bgm"],
+                # skin_lane_flg3=profile["skin_customize_flag_lane"],
+            ),
+            E.tdjskin_customize_flg(
+                skin_submonitor_flg=-1,
             ),
             E.spdp_rival(
                 flg=-1
@@ -302,8 +333,7 @@ async def iidx31pc_get(request: Request):
                 resistance_dp_right=profile.get(
                     "lightning_setting_resistance_dp_right", 0
                 ),
-                skin_0=profile.get("lightning_setting_skin_0", 0),
-                flg_skin_0=profile.get("lightning_setting_flg_skin_0", 0),
+                keyboard_kind=profile.get("lightning_setting_keyboard_kind", 0),
             ),
             E.arena_data(
                 E.achieve_data(
@@ -417,12 +447,17 @@ async def iidx31pc_get(request: Request):
                 E.is_kac_entry(),
                 E.is_kac_evnet_entry(),
             ),
-            E.orb_data(rest_orb=100, present_orb=100),
+            E.orb_data(
+                rest_orb=100,
+                present_orb=100,
+            ),
             E.visitor(anum=1, pnum=2, snum=1, vs_flg=1),
             E.tonjyutsu(black_pass=-1, platinum_pass=-1),
             E.pay_per_use(item_num=99),
             E.old_linkage_secret_flg(
-                song_battle=-1,
+                bemani_mixup=-1,
+                ccj_linkage=-1,
+                triple_tribe=-1,
             ),
             E.floor_infection4(music_list=-1),
             E.bemani_vote(music_list=-1),
@@ -438,7 +473,7 @@ async def iidx31pc_get(request: Request):
             E.ccj_linkage(music_list=-1),
             E.triple_tribe(music_list=-1),
             E.achievements(
-                E.trophy(profile.get("achievements_trophy", [])[:10], __type="s64"),
+                # E.trophy(profile.get("achievements_trophy", [])[:10], __type="s64"),
                 pack=profile.get("achievements_pack_id", 0),
                 pack_comp=profile.get("achievements_pack_comp", 0),
                 last_weekly=profile.get("achievements_last_weekly", 0),
@@ -519,12 +554,214 @@ async def iidx31pc_get(request: Request):
                     )
                 ),
             ),
-            E.skin_customize_flg(
-                skin_frame_flg=profile["skin_customize_flag_frame"],
-                skin_bgm_flg=profile["skin_customize_flag_bgm"],
-                skin_lane_flg3=profile["skin_customize_flag_lane"],
+            E.music_memo(
+                *[
+                    E.folder(
+                        E.music_id(
+                            profile.get(f"music_memo_{fi}_{ps}_mids", [0] * 10),
+                            __type="s32",
+                        ),
+                        play_style=ps,
+                        folder_id=fi,
+                        name=profile.get(
+                            f"music_memo_{fi}_{ps}_name", f"FOLDER {str(fi+1).zfill(2)}"
+                        ),
+                    )
+                    for fi in range(10)
+                    for ps in range(2)
+                ],
             ),
-            
+            # ),
+            # E.event_1(
+            #     E.flyer_data(
+            #         flyer_id=0,
+            #         play_num=0,
+            #         last_select_genre=0,
+            #         flyer_prog=0,
+            #         skill_param=0,
+            #     ),
+            #     E.genre_data(
+            #         E.is_complete(0, __type="bool"),
+            #         flyer_id=0,
+            #         genre_id=0,
+            #         play_num=0,
+            #         gauge=0,
+            #     ),
+            #     event_play_num=0,
+            #     last_select_flyer_id=0,
+            # ),
+            # E.player_compe(
+            #     E.compe_data(
+            #         E.compe_music(
+            #             index=0,
+            #             music_id=26029,
+            #             style_id=0,
+            #             note_grade_id=3,
+            #             ex_score=6,
+            #             pgreat_num=6,
+            #             great_num=6,
+            #             miss_num=6,
+            #         ),
+            #         E.compe_music(
+            #             index=1,
+            #             music_id=29057,
+            #             style_id=0,
+            #             note_grade_id=3,
+            #             ex_score=6,
+            #             pgreat_num=6,
+            #             great_num=6,
+            #             miss_num=6,
+            #         ),
+            #         E.compe_music(
+            #             index=2,
+            #             music_id=8027,
+            #             style_id=0,
+            #             note_grade_id=3,
+            #             ex_score=6,
+            #             pgreat_num=6,
+            #             great_num=6,
+            #             miss_num=6,
+            #         ),
+            #         E.compe_music(
+            #             index=3,
+            #             music_id=16027,
+            #             style_id=0,
+            #             note_grade_id=3,
+            #             ex_score=6,
+            #             pgreat_num=6,
+            #             great_num=6,
+            #             miss_num=6,
+            #         ),
+            #         compe_id=0,
+            #         forced_option=1,
+            #         compe_end_time=current_time,
+            #         compe_name="Monkey Business",
+            #         maker_name="kors k",
+            #         ex_score=666,
+            #         pgreat_num=666,
+            #         great_num=666,
+            #         my_rank=1,
+            #         total_join=1,
+            #     ),
+            # ),
+            # E.news(
+            #     *[E(x,
+            #         E.detail(
+            #             music_id=1000,
+            #             class_id=3,
+            #             news_type=0,
+            #             news_data=1572,
+            #             news_time=current_time,
+            #             dj_name="TEST",
+            #         ),
+            #         last_read_time=current_time,
+            #     )for x in ("news_data_all", "news_data_shop", "news_data_grade", "news_data_rival", "news_data_all_top", "news_data_area_top", "news_data_shop_top")],
+            # disp_score_type=0,
+            # ),
+            # E.exam_data(
+            #     E.music(
+            #         radar_type=1,
+            #         index=0,
+            #         music_id=26029,
+            #         class_id=3,
+            #         rank=1,
+            #         score=1,
+            #     ),
+            #     E.music(
+            #         radar_type=1,
+            #         index=1,
+            #         music_id=29057,
+            #         class_id=3,
+            #         rank=1,
+            #         score=1,
+            #     ),
+            #     E.music(
+            #         radar_type=1,
+            #         index=2,
+            #         music_id=8027,
+            #         class_id=3,
+            #         rank=1,
+            #         score=1,
+            #     ),
+            #     E.music(
+            #         radar_type=1,
+            #         index=3,
+            #         music_id=16027,
+            #         class_id=3,
+            #         rank=1,
+            #         score=1,
+            #     ),
+            #     exam_id=0,
+            #     entry_num=1,
+            #     rank=1,
+            #     total_score=1,
+            #     end_time=current_time,
+            # ),
+            # E.questionnaire(
+            #     *[E.questionnaire_data(
+            #         questionnaire_id=i,
+            #         answer="what is this?"
+            #     )for i in range(10)],
+            # ),
+            # E.badge(
+            #     # Base
+            #     E.badge_data(
+            #         category_id=1,
+            #         badge_flg_id=23,
+            #         badge_flg=554321,
+            #     ),
+            #     E.badge_data(
+            #         category_id=1,
+            #         badge_flg_id=11,
+            #         badge_flg=554321,
+            #     ),
+            #     E.badge_equip(
+            #         E.equip_flg(1, __type="bool"),
+            #         category_id=1,
+            #         badge_flg_id=23,
+            #         index=5,
+            #         slot=0,
+            #     ),
+            #     E.badge_equip(
+            #         E.equip_flg(1, __type="bool"),
+            #         category_id=1,
+            #         badge_flg_id=11,
+            #         index=5,
+            #         slot=4,
+            #     ),
+            #     # Class
+            #     E.badge_data(
+            #         category_id=2,
+            #         badge_flg_id=0,
+            #         badge_flg=191919191919,
+            #     ),
+            #     E.badge_equip(
+            #         E.equip_flg(1, __type="bool"),
+            #         category_id=2,
+            #         badge_flg_id=0,
+            #         index=2,
+            #         slot=3,
+            #     ),
+            #     E.badge_equip(
+            #         E.equip_flg(1, __type="bool"),
+            #         category_id=2,
+            #         badge_flg_id=0,
+            #         index=5,
+            #         slot=1,
+            #     ),
+            #     # Radar Rank
+            #     E.badge_data(
+            #         category_id=7,
+            #         badge_flg_id=1,
+            #         badge_flg=1010101010,
+            #     ),
+            #     E.badge_equip(
+            #         E.equip_flg(1, __type="bool"),
+            #         category_id=7,
+            #         badge_flg_id=1,
+            #         index=2,
+            #         slot=2,
+            #     ),
             # ),
         )
     )
@@ -565,31 +802,45 @@ async def iidx31pc_common(request: Request):
                 E.cm(filename="year_bn_006_2", id=8),
                 E.cm(filename="year_bn_007", id=9),
             ),
+            # E.playvideo_disable_music(E.music(musicid=-1)),
+            # E.music_movie_suspend(E.music(music_id=-1, kind=0, name='')),
+            # E.bpl_virtual(),
             E.movie_agreement(version=1),
             E.license("None", __type="str"),
             E.file_recovery(url=str(config.ip)),
             E.movie_upload(url=str(config.ip)),
+            # E.button_release_frame(frame=''),
+            # E.trigger_logic_type(type=''),
+            # E.cm_movie_info(type=''),
             E.escape_package_info(),
-            E.boss(phase=0),
+            # E.expert(phase=1),
+            # E.expert_random_secret(phase=1),
+            E.boss(phase=0),  # disable event
             E.vip_pass_black(),
             E.eisei(open=1),
-            E.deller_bonus(open=1),1),
+            E.deller_bonus(open=1),
+            E.newsong_another(open=1),
+            # E.pcb_check(flg=0)
             E.expert_secret_full_open(),
             E.eaorder_phase(phase=-1),
             E.common_evnet(flg=-1),
-            E.system_voice_phase(phase=random.randint(1, 10)),
+            E.system_voice_phase(phase=random.randint(1, 10)),  # TODO: Figure out range
             E.extra_boss_event(phase=6),
             E.event1_phase(phase=4),
-            E.premium_area_news(open=1),
-            E.premium_area_qpro(open=1),
+            # E.disable_same_triger(frame=-1),
             E.play_video(),
+            E.music_retry(),
             E.world_tourism(open_list=1),
-            E.bpl_battle(phase=1),
+            # E.bpl_battle(phase=1),
             E.display_asio_logo(),
+            # E.force_rom_check(),
             E.lane_gacha(),
-            E.tourism_booster(),
+            # E.fps_fix(),
+            # E.save_unsync_log(),
+            # E.tourism_booster(),
             expire=600,
         )
+    )
 
     response_body, response_headers = await core_prepare_response(request, response)
     return Response(content=response_body, headers=response_headers)
@@ -611,6 +862,7 @@ async def iidx31pc_save(request: Request):
         "d_auto_adjust",
         "d_auto_scrach",
         "d_camera_layout",
+        "d_classic_hispeed",
         "d_disp_judge",
         "d_gauge_disp",
         "d_ghost_score",
@@ -642,6 +894,7 @@ async def iidx31pc_save(request: Request):
         "s_auto_adjust",
         "s_auto_scrach",
         "s_camera_layout",
+        "s_classic_hispeed",
         "s_disp_judge",
         "s_gauge_disp",
         "s_ghost_score",
@@ -685,6 +938,7 @@ async def iidx31pc_save(request: Request):
             "resistance_dp_right",
             "resistance_sp_left",
             "resistance_sp_right",
+            "keyboard_kind",
         ]:
             game_profile["lightning_setting_" + k] = int(lightning_setting.attrib[k])
 
@@ -704,14 +958,25 @@ async def iidx31pc_save(request: Request):
         if concentration is not None:
             game_profile["lightning_setting_concentration"] = int(concentration.text)
 
-    lightning_customize_flg = request_info["root"][0].find("lightning_customize_flg")
-    if lightning_customize_flg is not None:
-        for k in [
-            "flg_skin_0",
-        ]:
-            game_profile["lightning_setting_" + k] = int(
-                lightning_customize_flg.attrib[k]
-            )
+    music_memo = request_info["root"][0].find("music_memo")
+    if music_memo is not None:
+        folders = music_memo.findall("folder")
+        for f in folders:
+            fi = f.attrib["folder_id"]
+            fn = f.attrib["name"]
+            ps = f.attrib["play_style"]
+            mids = [int(x) for x in f.find("music_id").text.split(" ")]
+            game_profile[f"music_memo_{fi}_{ps}_name"] = fn
+            game_profile[f"music_memo_{fi}_{ps}_mids"] = mids
+
+    # lightning_customize_flg = request_info["root"][0].find("lightning_customize_flg")
+    # if lightning_customize_flg is not None:
+    #    for k in [
+    #        "flg_skin_0",
+    #    ]:
+    #        game_profile["lightning_setting_" + k] = int(
+    #            lightning_customize_flg.attrib[k]
+    #        )
 
     secret = request_info["root"][0].find("secret")
     if secret is not None:
@@ -763,6 +1028,37 @@ async def iidx31pc_save(request: Request):
         game_profile["dj_rank_" + ["single", "double"][style] + "_point"] = [
             int(x) for x in point.text.split(" ")
         ]
+
+    skin_equips = request_info["root"][0].findall("skin_equip")
+    skin_equips = [] if skin_equips is None else skin_equips
+    skin = {
+        1: "explosion",
+        2: "explosion_size",
+        3: "turntable",
+        4: "judgestring",
+        5: "note",
+        6: "note_size",
+        13: "sudden",
+        14: "grapharea",
+        15: "lift",
+        16: "keybeam",
+        17: "keybeam_size",
+        18: "fullcombo",
+    }
+    for skin_equip in skin_equips:
+        skin_id = int(skin_equip.attrib["skin_id"])
+        if skin_id in skin:
+            game_profile[skin[skin_id]] = int(skin_equip.attrib["skin_no"])
+
+    tdjskin_equips = request_info["root"][0].findall("tdjskin_equip")
+    tdjskin_equips = [] if tdjskin_equips is None else tdjskin_equips
+    tdjskin = {
+        0: "submonitor",
+    }
+    for tdjskin_equip in tdjskin_equips:
+        skin_id = int(tdjskin_equip.attrib["skin_id"])
+        if skin_id in tdjskin:
+            game_profile[tdjskin[skin_id]] = int(tdjskin_equip.attrib["skin_no"])
 
     notes_radars = request_info["root"][0].findall("notes_radar")
     notes_radars = [] if notes_radars is None else notes_radars
@@ -895,14 +1191,19 @@ async def iidx31pc_reg(request: Request):
         "judgestring": 0,
         "soundpreview": 0,
         "grapharea": 0,
+        "lift": 0,
         "effector_lock": 0,
         "effector_type": 0,
         "explosion_size": 0,
+        "note_size": 0,
+        "keybeam_size": 0,
+        "submonitor": 0,
         "alternate_hcn": 0,
         "kokokara_start": 0,
         "d_auto_adjust": 0,
         "d_auto_scrach": 0,
         "d_camera_layout": 0,
+        "d_classic_hispeed": 0,
         "d_disp_judge": 0,
         "d_exscore": 0,
         "d_gauge_disp": 0,
@@ -939,6 +1240,7 @@ async def iidx31pc_reg(request: Request):
         "s_auto_adjust": 0,
         "s_auto_scrach": 0,
         "s_camera_layout": 0,
+        "s_classic_hispeed": 0,
         "s_disp_judge": 0,
         "s_exscore": 0,
         "s_gauge_disp": 0,
@@ -1035,8 +1337,22 @@ async def iidx31pc_reg(request: Request):
         "_beginner_option_swap": 1,
         "_show_lamps_as_no_play_in_arena": 0,
         "skin_customize_flag_frame": 0,
+        # "skin_customize_flag_turntable": 0,
+        # "skin_customize_flag_bomb": 0,
         "skin_customize_flag_bgm": 0,
         "skin_customize_flag_lane": 0,
+        # "skin_customize_flag_lane0": 0,
+        # "skin_customize_flag_lane1": 0,
+        # "skin_customize_flag_lane2": 0,
+        # "skin_customize_flag_lane3": 0,
+        # "skin_customize_flag_lane4": 0,
+        # "skin_customize_flag_lane5": 0,
+        # "skin_customize_flag_notes": 0,
+        # "skin_customize_flag_fullcombo": 0,
+        # "skin_customize_flag_keybeam": 0,
+        # "skin_customize_flag_judgestring": 0,
+        # "skin_customize_flag_bgm": 0,
+        # "skin_customize_flag_lane": 0,
         # Rivals
         "sp_rival_1_iidx_id": 0,
         "sp_rival_2_iidx_id": 0,
@@ -1114,10 +1430,10 @@ async def iidx31pc_drawlanegacha(request: Request):
         E.IIDX31pc(
             E.ticket(
                 ticket_id=1,
-                arrange_ide=0,
+                arrange_id=1,
+                expire_date=0,
             ),
-            E.session(sess=1,
-                expire_dation_id=1),
+            E.session(session_id=1),
             status=0,
         )
     )
@@ -1136,27 +1452,18 @@ async def iidx31pc_eaappliresult(request: Request):
     return Response(content=response_body, headers=response_headers)
 
 
-@router.post("/{gameinfo}/IIDX31pc/getCompeInfo")
-async def iidx31pc_getcompeinfo(request: Request):
-    request_info = await core_process_request(request)
-
-    response = E.response(E.IIDX31pc())
-
-    response_body, response_headers = await core_prepare_response(request, response)
-    return Response(content=response_body, headers=response_headers)
-
-@router.post("/{gameinfo}/IIDX31pc/playstart")
-async def iidx31pc_playstart(request: Request):
-    request_info = await core_process_request(request)
-
-    response = E.response(E.IIDX31pc())
-
-    response_body, response_headers = await core_prepare_response(request, response)
-    return Response(content=response_body, headers=response_headers)
-
-
 @router.post("/{gameinfo}/IIDX31pc/logout")
 async def iidx31pc_logout(request: Request):
+    request_info = await core_process_request(request)
+
+    response = E.response(E.IIDX31pc())
+
+    response_body, response_headers = await core_prepare_response(request, response)
+    return Response(content=response_body, headers=response_headers)
+
+
+@router.post("/{gameinfo}/IIDX31pc/getCompeInfo")
+async def iidx31pc_getcompeinfo(request: Request):
     request_info = await core_process_request(request)
 
     response = E.response(E.IIDX31pc())
