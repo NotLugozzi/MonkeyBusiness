@@ -1,4 +1,5 @@
 import socket
+import json
 
 # https://stackoverflow.com/a/28950776
 def get_ip():
@@ -13,12 +14,17 @@ def get_ip():
         s.close()
     return IP
 
+def load_config():
+    with open('common.json') as config_file:
+        return json.load(config_file)
+
+config = load_config()
 
 ip = get_ip()
 port = 8000
 services_prefix = "/core"
 verbose_log = True
 
-arcade = "Monkey Business"
-paseli = 5730
-maintenance_mode = False
+arcade = config.get('arcade', 'Default Arcade Name')
+paseli = config.get('paseli', 0)
+maintenance_mode = config.get('maintenance_mode', False)
